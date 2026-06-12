@@ -23,19 +23,17 @@
 
 ## Evidencias 
 
-## FUNDAMENTOS01/assets
-
 ### 1. Verificación de Java
-![java version](evidencias/01_java_version.png)
+![java version](assets/01_java_version.png)
 
 ### 2. Servidor Spring Boot ejecutándose
-![tomcat running](evidencias/02_tomcat_running.png)
+![tomcat running](assets/02_tomcat_running.png)
 
 ### 3. Endpoint /api/status funcionando
-![endpoint status](evidencias/03_endpoint_status.png)
+![endpoint status](assets/03_endpoint_status.png)
 
 ### 4. Archivo StatusController.java
-![ls controllers](evidencias/04_ls_controllers.png)
+![ls controllers](assets/04_ls_controllers.png)
 
 ---
 
@@ -50,5 +48,5 @@ devuelva ese JSON automáticamente.
 ### Spring Boot y el servidor
 No hay que instalar ningún servidor por separado, 
 Spring Boot ya trae Tomcat incluido y lo inicia solo cuando se ejecuta
-`./gradlew bootRun`. Básicamente con agregar la dependencia web ya 
+`./gradlew bootRun`. Con agregar la dependencia web ya 
 funciona todo en el puerto 8080.
