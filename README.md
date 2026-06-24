@@ -106,3 +106,34 @@ y modificar código sin afectar otras partes del sistema. Además,
 Spring Boot detecta todos los componentes automáticamente gracias al
 @ComponentScan que activa @SpringBootApplication, siempre que estén
 dentro del package raíz ec.edu.ups.icc.fundamentos01.
+
+---
+
+# Práctica 3 - Spring Boot: API REST con Controladores, DTOs, Modelos y Mappers
+
+## Evidencias
+
+### 1. GET /api/products - Lista de productos
+![get all products](assets/07_get_all_products.png)
+
+### 2. GET /api/products/1 - Producto por ID
+![get product by id](assets/08_get_product_by_id.png)
+
+### 3. DELETE /api/products/1 - Eliminar producto existente
+![delete product existing](assets/09_delete_product_existing.png)
+
+### 4. DELETE /api/products/99 - Eliminar producto inexistente
+![delete product not found](assets/10_delete_product_not_found.png)
+
+---
+
+## Explicación
+
+Se construyó un CRUD REST completo para el recurso products usando
+controladores, DTOs, modelos y mappers. El DTO de entrada recibe solo
+name, price y stock, mientras que el DTO de respuesta devuelve esos
+mismos campos más el id generado automáticamente. El mapper convierte
+entre DTO, modelo y entidad sin exponer datos internos. Los endpoints
+siguen el estándar REST: GET retorna 200, DELETE retorna 204 No Content
+cuando el producto existe, y 500 con mensaje "Product not found" cuando
+no existe.
