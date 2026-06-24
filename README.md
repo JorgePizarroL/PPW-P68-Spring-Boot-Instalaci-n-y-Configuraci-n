@@ -169,3 +169,28 @@ porque tiene la anotación @Service, crea una instancia automáticamente
 y la inyecta en el controlador. Esto se llama inyección de dependencias
 por constructor y permite que el controlador no tenga lógica de negocio,
 solo delega cada operación al servicio.
+
+---
+
+# Práctica 5 - Spring Boot: Persistencia con JPA, Entidades y Repositorios
+
+## Evidencias
+
+### 1. Productos en PostgreSQL
+![products postgresql](assets/13_products_postgresql.png)
+
+---
+
+## Explicación: Flujo de datos desde la API REST hasta PostgreSQL
+
+Cuando llega una petición HTTP al controlador, este delega al servicio.
+El servicio convierte el DTO de entrada en un ProductModel usando el
+mapper. Luego convierte el modelo en una ProductEntity y la guarda en
+PostgreSQL mediante el ProductRepository. Al leer datos, el repositorio
+devuelve entidades que el mapper convierte a modelos y luego a DTOs de
+respuesta que se envían al cliente.
+
+BaseEntity centraliza los campos comunes de todas las entidades: id
+generado automáticamente por PostgreSQL, createdAt asignado con
+@PrePersist, updatedAt actualizado con @PreUpdate, y deleted para
+eliminación lógica. Esto evita repetir esos campos en cada entidad.
