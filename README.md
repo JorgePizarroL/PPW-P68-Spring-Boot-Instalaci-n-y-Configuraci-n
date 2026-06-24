@@ -137,3 +137,35 @@ entre DTO, modelo y entidad sin exponer datos internos. Los endpoints
 siguen el estándar REST: GET retorna 200, DELETE retorna 204 No Content
 cuando el producto existe, y 500 con mensaje "Product not found" cuando
 no existe.
+
+---
+
+# Práctica 4 - Spring Boot: Controladores + Servicios + Lógica de Negocio
+
+## Evidencias
+
+### 1. ProductServiceImpl.java
+![product service impl](assets/11_product_service_impl.png)
+
+### 2. ProductsController.java
+![products controller](assets/12_products_controller.png)
+
+---
+
+## Explicación: ¿Cómo se inyecta el servicio en el controlador?
+
+El controlador no crea manualmente el servicio. En su lugar declara
+una dependencia final y la recibe por constructor:
+
+    private final ProductService service;
+
+    public ProductsController(ProductService service) {
+        this.service = service;
+    }
+
+Spring Boot detecta que el controlador necesita un ProductService,
+busca una clase que implemente esa interfaz, encuentra ProductServiceImpl
+porque tiene la anotación @Service, crea una instancia automáticamente
+y la inyecta en el controlador. Esto se llama inyección de dependencias
+por constructor y permite que el controlador no tenga lógica de negocio,
+solo delega cada operación al servicio.
