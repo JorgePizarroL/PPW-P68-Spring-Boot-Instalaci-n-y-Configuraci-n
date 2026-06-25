@@ -221,3 +221,23 @@ Después de eliminar el producto con id 6, el listado solo devuelve los producto
 
 ![get findall sin eliminados](assets/17_get_findall_filtrado.png)
 
+---
+
+# Práctica 7 - Spring Boot: Manejo Global de Errores y Excepciones
+
+## Evidencias
+
+### 1. GET producto inexistente → 404 Not Found
+Se buscó un producto con id 999 que no existe. El handler devuelve el formato estándar de error.
+
+![producto no encontrado](assets/18_producto_no_encontrado.png)
+
+### 2. POST producto duplicado → 409 Conflict
+Se intentó crear un producto con el nombre "Teclado" que ya existe en la base de datos.
+
+![producto duplicado](assets/19_producto_duplicado.png)
+
+### 3. POST inválido → 400 Bad Request con details
+Se enviaron datos inválidos. El handler devuelve el campo `details` con el error específico de cada campo.
+
+![validacion details](assets/20_validacion_details.png)
