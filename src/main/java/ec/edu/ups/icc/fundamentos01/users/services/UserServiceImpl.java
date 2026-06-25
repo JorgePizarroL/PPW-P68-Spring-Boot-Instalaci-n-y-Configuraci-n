@@ -1,5 +1,7 @@
 package ec.edu.ups.icc.fundamentos01.users.services;
 
+import ec.edu.ups.icc.fundamentos01.core.exceptions.domain.ConflictException;
+import ec.edu.ups.icc.fundamentos01.core.exceptions.domain.NotFoundException;
 import ec.edu.ups.icc.fundamentos01.users.dtos.CreateUserDto;
 import ec.edu.ups.icc.fundamentos01.users.dtos.PartialUpdateUserDto;
 import ec.edu.ups.icc.fundamentos01.users.dtos.UpdateUserDto;
@@ -32,51 +34,68 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponseDto findOne(Long id) {
-        return userRepository.findById(id)
-                .map(UserMapper::toModelFromEntity)
-                .map(UserMapper::toResponse)
-                .orElseThrow(() -> new IllegalStateException("User not found"));
+        UserEntity entity = userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        if (entity.isDeleted()) {
+            throw new NotFoundException("User not found");
+        }
+
+        return UserMapper.toResponse(UserMapper.toModelFromEntity(entity));
     }
 
     @Override
     public UserResponseDto create(CreateUserDto dto) {
+        if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
+            throw new ConflictException("Email already registered");
+        }
+
         UserModel model = UserMapper.toModelFormDTO(dto);
         UserEntity entity = UserMapper.toEntityFromModel(model);
         UserEntity savedEntity = userRepository.save(entity);
-        UserModel savedModel = UserMapper.toModelFromEntity(savedEntity);
-        return UserMapper.toResponse(savedModel);
+        return UserMapper.toResponse(UserMapper.toModelFromEntity(savedEntity));
     }
 
     @Override
     public UserResponseDto update(Long id, UpdateUserDto dto) {
         UserEntity entity = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        if (entity.isDeleted()) {
+            throw new NotFoundException("User not found");
+        }
 
         entity.setName(dto.getName());
         entity.setEmail(dto.getEmail());
 
         UserEntity savedEntity = userRepository.save(entity);
-        UserModel model = UserMapper.toModelFromEntity(savedEntity);
-        return UserMapper.toResponse(model);
+        return UserMapper.toResponse(UserMapper.toModelFromEntity(savedEntity));
     }
 
     @Override
     public UserResponseDto partialUpdate(Long id, PartialUpdateUserDto dto) {
         UserEntity entity = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        if (entity.isDeleted()) {
+            throw new NotFoundException("User not found");
+        }
 
         if (dto.getName() != null) entity.setName(dto.getName());
         if (dto.getEmail() != null) entity.setEmail(dto.getEmail());
 
         UserEntity savedEntity = userRepository.save(entity);
-        UserModel model = UserMapper.toModelFromEntity(savedEntity);
-        return UserMapper.toResponse(model);
+        return UserMapper.toResponse(UserMapper.toModelFromEntity(savedEntity));
     }
 
     @Override
     public void delete(Long id) {
         UserEntity entity = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        if (entity.isDeleted()) {
+            throw new NotFoundException("User not found");
+        }
 
         entity.setDeleted(true);
         userRepository.save(entity);
