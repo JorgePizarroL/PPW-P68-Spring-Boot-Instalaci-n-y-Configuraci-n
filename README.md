@@ -194,3 +194,30 @@ BaseEntity centraliza los campos comunes de todas las entidades: id
 generado automáticamente por PostgreSQL, createdAt asignado con
 @PrePersist, updatedAt actualizado con @PreUpdate, y deleted para
 eliminación lógica. Esto evita repetir esos campos en cada entidad.
+
+---
+
+# Práctica 6 - Spring Boot: Validación de DTOs y Control de Datos de Entrada
+
+## Evidencias
+
+### 1. POST inválido → 400 Bad Request
+Se envió `name` vacío, `price` negativo y `stock` negativo. Spring Boot rechaza la petición antes de llegar al servicio.
+
+![post invalido](assets/14_post_invalido.png)
+
+### 2. POST válido → producto creado correctamente
+Se creó el producto "Camara" con precio y stock válidos.
+
+![post valido](assets/15_post_valido.png)
+
+### 3. PUT sobre producto eliminado → error
+Se eliminó el producto con id 6 y luego se intentó actualizarlo. El servicio lanza `"Cannot update a deleted product"`.
+
+![put producto eliminado](assets/16_put_producto_eliminado.png)
+
+### 4. GET findAll → producto eliminado no aparece
+Después de eliminar el producto con id 6, el listado solo devuelve los productos activos. El id 6 no aparece en la respuesta.
+
+![get findall sin eliminados](assets/17_get_findall_filtrado.png)
+
