@@ -1,9 +1,13 @@
 package ec.edu.ups.icc.fundamentos01.products.dtos;
 
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+
+import java.util.Set;
 
 public class CreateProductDto {
 
@@ -12,19 +16,27 @@ public class CreateProductDto {
     private String name;
 
     @NotNull(message = "El precio es obligatorio")
-    @Min(value = 0, message = "El precio no puede ser negativo")
+    @DecimalMin(value = "0.0", inclusive = true, message = "El precio no puede ser negativo")
     private Double price;
 
     @NotNull(message = "El stock es obligatorio")
     @Min(value = 0, message = "El stock no puede ser negativo")
     private Integer stock;
 
+    @NotNull(message = "El ID del usuario es obligatorio")
+    private Long userId;
+
+    @NotEmpty(message = "Debe seleccionar al menos una categoría")
+    private Set<Long> categoryIds;
+
     public CreateProductDto() {}
 
-    public CreateProductDto(String name, Double price, Integer stock) {
+    public CreateProductDto(String name, Double price, Integer stock, Long userId, Set<Long> categoryIds) {
         this.name = name;
         this.price = price;
         this.stock = stock;
+        this.userId = userId;
+        this.categoryIds = categoryIds;
     }
 
     public String getName() { return name; }
@@ -35,4 +47,10 @@ public class CreateProductDto {
 
     public Integer getStock() { return stock; }
     public void setStock(Integer stock) { this.stock = stock; }
+
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
+
+    public Set<Long> getCategoryIds() { return categoryIds; }
+    public void setCategoryIds(Set<Long> categoryIds) { this.categoryIds = categoryIds; }
 }

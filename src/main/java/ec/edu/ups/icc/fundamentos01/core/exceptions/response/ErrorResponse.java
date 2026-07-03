@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
+
 public class ErrorResponse {
 
     private LocalDateTime timestamp;
@@ -18,8 +19,8 @@ public class ErrorResponse {
 
     public ErrorResponse(HttpStatus status, String message, String path, Map<String, String> details) {
         this.timestamp = LocalDateTime.now();
-        this.status = status.value();
-        this.error = status.getReasonPhrase();
+        this.status = status.value(); // 404 +, 500, 200
+        this.error = status.getReasonPhrase();  // Not found, OK, Internal server error
         this.message = message;
         this.path = path;
         this.details = details;

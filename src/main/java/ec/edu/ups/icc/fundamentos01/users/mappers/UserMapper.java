@@ -7,12 +7,16 @@ import ec.edu.ups.icc.fundamentos01.users.models.UserModel;
 
 public class UserMapper {
 
+    public static String hashPassword(String rawPassword) {
+        return "HASH_" + rawPassword;
+    }
+
     public static UserModel toModelFormDTO(CreateUserDto dto) {
         UserModel model = new UserModel();
         model.setName(dto.getName());
         model.setEmail(dto.getEmail());
         model.setPassword(dto.getPassword());
-        model.setPasswordHash("HASH_" + dto.getPassword());
+        model.setPasswordHash(hashPassword(dto.getPassword()));
         return model;
     }
 
@@ -43,4 +47,6 @@ public class UserMapper {
         response.setEmail(model.getEmail());
         return response;
     }
+
+
 }

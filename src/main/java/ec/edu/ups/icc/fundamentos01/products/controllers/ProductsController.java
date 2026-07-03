@@ -31,6 +31,16 @@ public class ProductsController {
         return service.findOne(id);
     }
 
+    @GetMapping("/user/{userId}")
+    public List<ProductResponseDto> findByUserId(@PathVariable Long userId) {
+        return service.findByUserId(userId);
+    }
+
+    @GetMapping("/category/{categoryId}")
+    public List<ProductResponseDto> findByCategoryId(@PathVariable Long categoryId) {
+        return service.findByCategoryId(categoryId);
+    }
+
     @PostMapping
     public ProductResponseDto create(@Valid @RequestBody CreateProductDto dto) {
         return service.create(dto);

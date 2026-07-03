@@ -27,6 +27,7 @@ public class UserServiceImpl implements UserService {
     public List<UserResponseDto> findAll() {
         return userRepository.findAll()
                 .stream()
+                .filter(e -> !e.isDeleted())
                 .map(UserMapper::toModelFromEntity)
                 .map(UserMapper::toResponse)
                 .toList();
@@ -68,6 +69,10 @@ public class UserServiceImpl implements UserService {
         entity.setName(dto.getName());
         entity.setEmail(dto.getEmail());
 
+        if (dto.getPassword() != null) {
+            entity.setPasswordHash(UserMapper.hashPassword(dto.getPassword()));
+        }
+
         UserEntity savedEntity = userRepository.save(entity);
         return UserMapper.toResponse(UserMapper.toModelFromEntity(savedEntity));
     }
@@ -83,6 +88,7 @@ public class UserServiceImpl implements UserService {
 
         if (dto.getName() != null) entity.setName(dto.getName());
         if (dto.getEmail() != null) entity.setEmail(dto.getEmail());
+        if (dto.getPassword() != null) entity.setPasswordHash(UserMapper.hashPassword(dto.getPassword()));
 
         UserEntity savedEntity = userRepository.save(entity);
         return UserMapper.toResponse(UserMapper.toModelFromEntity(savedEntity));
