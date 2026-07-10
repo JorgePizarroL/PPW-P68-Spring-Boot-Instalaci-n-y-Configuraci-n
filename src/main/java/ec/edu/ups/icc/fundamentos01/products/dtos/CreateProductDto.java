@@ -23,19 +23,15 @@ public class CreateProductDto {
     @Min(value = 0, message = "El stock no puede ser negativo")
     private Integer stock;
 
-    @NotNull(message = "El ID del usuario es obligatorio")
-    private Long userId;
-
     @NotEmpty(message = "Debe seleccionar al menos una categoría")
     private Set<Long> categoryIds;
 
     public CreateProductDto() {}
 
-    public CreateProductDto(String name, Double price, Integer stock, Long userId, Set<Long> categoryIds) {
+    public CreateProductDto(String name, Double price, Integer stock, Set<Long> categoryIds) {
         this.name = name;
         this.price = price;
         this.stock = stock;
-        this.userId = userId;
         this.categoryIds = categoryIds;
     }
 
@@ -47,9 +43,6 @@ public class CreateProductDto {
 
     public Integer getStock() { return stock; }
     public void setStock(Integer stock) { this.stock = stock; }
-
-    public Long getUserId() { return userId; }
-    public void setUserId(Long userId) { this.userId = userId; }
 
     public Set<Long> getCategoryIds() { return categoryIds; }
     public void setCategoryIds(Set<Long> categoryIds) { this.categoryIds = categoryIds; }

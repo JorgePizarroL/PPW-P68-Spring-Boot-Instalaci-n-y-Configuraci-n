@@ -6,6 +6,7 @@ import ec.edu.ups.icc.fundamentos01.products.dtos.PartialUpdateProductDto;
 import ec.edu.ups.icc.fundamentos01.products.dtos.ProductFilterByUserDto;
 import ec.edu.ups.icc.fundamentos01.products.dtos.ProductResponseDto;
 import ec.edu.ups.icc.fundamentos01.products.dtos.UpdateProductDto;
+import ec.edu.ups.icc.fundamentos01.security.services.UserDetailsImpl;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Slice;
 
@@ -17,13 +18,25 @@ public interface ProductService {
 
     ProductResponseDto findOne(Long id);
 
-    ProductResponseDto create(CreateProductDto dto);
+    /*
+     * Crea un producto usando como owner al usuario autenticado.
+     */
+    ProductResponseDto create(CreateProductDto dto, UserDetailsImpl currentUser);
 
-    ProductResponseDto update(Long id, UpdateProductDto dto);
+    /*
+     * Actualiza completamente un producto. Se valida ownership en el servicio.
+     */
+    ProductResponseDto update(Long id, UpdateProductDto dto, UserDetailsImpl currentUser);
 
-    ProductResponseDto partialUpdate(Long id, PartialUpdateProductDto dto);
+    /*
+     * Actualiza parcialmente un producto. Se valida ownership en el servicio.
+     */
+    ProductResponseDto partialUpdate(Long id, PartialUpdateProductDto dto, UserDetailsImpl currentUser);
 
-    void delete(Long id);
+    /*
+     * Elimina lógicamente un producto. Se valida ownership en el servicio.
+     */
+    void delete(Long id, UserDetailsImpl currentUser);
 
     List<ProductResponseDto> findByUserId(Long userId);
 
@@ -39,9 +52,12 @@ public interface ProductService {
     Page<ProductResponseDto> findAllPage(PaginationDto pagination);
 
     /*
-     * Retorna productos activos usando Slice.
-     */
-    Slice<ProductResponseDto> findAllSlice(PaginationDto pagination);
+        * Retorna productos activos usando Slice.
+        *
+        * Solo devuelve los productos del usuario autenticado (sin excepción
+        * de rol): a diferencia de findAll(), aquí ADMIN no ve productos ajenos.
+    */
+    Slice<ProductResponseDto> findAllSlice(PaginationDto pagination, UserDetailsImpl currentUser);
 
     /*
      * Retorna productos de una categoría con filtros y Page.

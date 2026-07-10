@@ -171,4 +171,20 @@ public interface ProductRepository extends JpaRepository<ProductEntity, Long> {
             @Param("userId") Long userId,
             Pageable pageable
     );
+
+        /*
+     * Consulta productos activos de un usuario específico usando Slice.
+     *
+     * El filtro por owner se hace en la consulta (no en memoria en el
+     * servicio), para que LIMIT/OFFSET actúen sobre los productos
+     * ya filtrados y la paginación sea real.
+     */
+    @Query("""
+            SELECT p
+            FROM ProductEntity p
+            WHERE p.deleted = false
+              AND p.owner.id = :ownerId
+            """)
+    Slice<ProductEntity> findActiveSliceByOwnerId(@Param("ownerId") Long ownerId, Pageable pageable);
+    
 }

@@ -14,7 +14,6 @@ public class ProductMapper {
         model.setName(dto.getName());
         model.setPrice(dto.getPrice());
         model.setStock(dto.getStock());
-        model.setOwnerId(dto.getUserId());
         return model;
     }
 
