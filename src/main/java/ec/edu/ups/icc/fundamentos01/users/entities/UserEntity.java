@@ -1,7 +1,11 @@
 package ec.edu.ups.icc.fundamentos01.users.entities;
 
 import ec.edu.ups.icc.fundamentos01.core.entities.BaseEntity;
+import ec.edu.ups.icc.fundamentos01.security.entities.RoleEntity;
 import jakarta.persistence.*;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -15,6 +19,14 @@ public class UserEntity extends BaseEntity {
 
     @Column(nullable = false)
     private String passwordHash;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "user_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private Set<RoleEntity> roles = new HashSet<>();
 
     public UserEntity() {}
 
@@ -32,4 +44,7 @@ public class UserEntity extends BaseEntity {
 
     public String getPasswordHash() { return passwordHash; }
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
+
+    public Set<RoleEntity> getRoles() { return roles; }
+    public void setRoles(Set<RoleEntity> roles) { this.roles = roles; }
 }

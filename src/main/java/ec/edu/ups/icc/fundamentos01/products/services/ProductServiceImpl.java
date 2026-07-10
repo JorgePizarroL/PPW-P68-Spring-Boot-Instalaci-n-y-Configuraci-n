@@ -2,6 +2,7 @@ package ec.edu.ups.icc.fundamentos01.products.services;
 
 import ec.edu.ups.icc.fundamentos01.categories.entities.CategoryEntity;
 import ec.edu.ups.icc.fundamentos01.categories.repositories.CategoryRepository;
+import ec.edu.ups.icc.fundamentos01.core.dtos.PaginationDto;
 import ec.edu.ups.icc.fundamentos01.core.exceptions.domain.BadRequestException;
 import ec.edu.ups.icc.fundamentos01.core.exceptions.domain.ConflictException;
 import ec.edu.ups.icc.fundamentos01.core.exceptions.domain.NotFoundException;
@@ -16,7 +17,13 @@ import ec.edu.ups.icc.fundamentos01.products.models.ProductModel;
 import ec.edu.ups.icc.fundamentos01.products.repositories.ProductRepository;
 import ec.edu.ups.icc.fundamentos01.users.entities.UserEntity;
 import ec.edu.ups.icc.fundamentos01.users.repositories.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
@@ -263,5 +270,175 @@ public class ProductServiceImpl implements ProductService {
             return null;
         }
         return name.trim();
+    }
+
+    /*
+     * Retorna productos activos usando Page.
+     *
+     * Incluye metadatos completos:
+     * totalElements, totalPages, number, size, first, last.
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ProductResponseDto> findAllPage(PaginationDto pagination) {
+
+        Pageable pageable = createPageable(pagination);
+
+        return productRepository.findActivePage(pageable)
+                .map(ProductMapper::toModelFromEntity)
+                .map(ProductMapper::toResponse);
+    }
+
+    /*
+     * Retorna productos activos usando Slice.
+     *
+     * No incluye totalElements ni totalPages.
+     * Es más liviano para navegación secuencial.
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Slice<ProductResponseDto> findAllSlice(PaginationDto pagination) {
+
+        Pageable pageable = createPageable(pagination);
+
+        return productRepository.findActiveSlice(pageable)
+                .map(ProductMapper::toModelFromEntity)
+                .map(ProductMapper::toResponse);
+    }
+
+    /*
+     * Retorna productos activos de una categoría usando Page.
+     *
+     * Mantiene los filtros existentes y agrega paginación.
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ProductResponseDto> findByCategoryIdWithFiltersPage(
+            Long categoryId,
+            ProductFilterByUserDto filters,
+            PaginationDto pagination
+    ) {
+        if (!categoryRepository.existsByIdAndDeletedFalse(categoryId)) {
+            throw new NotFoundException("Category not found");
+        }
+
+        validateFilters(filters);
+
+        String name = normalizeName(filters.getName());
+
+        Pageable pageable = createPageable(pagination);
+
+        return productRepository.findByCategoryIdWithFiltersPage(
+                        categoryId,
+                        name,
+                        filters.getMinPrice(),
+                        filters.getMaxPrice(),
+                        filters.getUserId(),
+                        pageable
+                )
+                .map(ProductMapper::toModelFromEntity)
+                .map(ProductMapper::toResponse);
+    }
+
+    /*
+     * Retorna productos activos de una categoría usando Slice.
+     *
+     * No calcula totalElements ni totalPages.
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Slice<ProductResponseDto> findByCategoryIdWithFiltersSlice(
+            Long categoryId,
+            ProductFilterByUserDto filters,
+            PaginationDto pagination
+    ) {
+        if (!categoryRepository.existsByIdAndDeletedFalse(categoryId)) {
+            throw new NotFoundException("Category not found");
+        }
+
+        validateFilters(filters);
+
+        String name = normalizeName(filters.getName());
+
+        Pageable pageable = createPageable(pagination);
+
+        return productRepository.findByCategoryIdWithFiltersSlice(
+                        categoryId,
+                        name,
+                        filters.getMinPrice(),
+                        filters.getMaxPrice(),
+                        filters.getUserId(),
+                        pageable
+                )
+                .map(ProductMapper::toModelFromEntity)
+                .map(ProductMapper::toResponse);
+    }
+
+    /*
+     * Construye el objeto Pageable validando:
+     * página, tamaño, campo de ordenamiento y dirección.
+     */
+    private Pageable createPageable(PaginationDto pagination) {
+
+        String sortBy = normalizeSortBy(pagination.getSortBy());
+
+        Sort.Direction direction = normalizeDirection(pagination.getDirection());
+
+        Sort sort = Sort.by(direction, sortBy);
+
+        return PageRequest.of(
+                pagination.getPage(),
+                pagination.getSize(),
+                sort
+        );
+    }
+
+    /*
+     * Valida que el campo de ordenamiento exista y esté permitido.
+     *
+     * Se usa lista blanca para evitar ordenar por campos inexistentes
+     * o por relaciones complejas no preparadas para esta práctica.
+     */
+    private String normalizeSortBy(String sortBy) {
+
+        if (sortBy == null || sortBy.isBlank()) {
+            return "id";
+        }
+
+        Set<String> allowedFields = Set.of(
+                "id",
+                "name",
+                "price",
+                "stock",
+                "createdAt",
+                "updatedAt"
+        );
+
+        if (!allowedFields.contains(sortBy)) {
+            throw new BadRequestException("Campo de ordenamiento no permitido: " + sortBy);
+        }
+
+        return sortBy;
+    }
+
+    /*
+     * Convierte la dirección recibida por query param
+     * en Sort.Direction.
+     */
+    private Sort.Direction normalizeDirection(String direction) {
+
+        if (direction == null || direction.isBlank()) {
+            return Sort.Direction.ASC;
+        }
+
+        if (direction.equalsIgnoreCase("asc")) {
+            return Sort.Direction.ASC;
+        }
+
+        if (direction.equalsIgnoreCase("desc")) {
+            return Sort.Direction.DESC;
+        }
+
+        throw new BadRequestException("Dirección de ordenamiento no válida: " + direction);
     }
 }

@@ -26,6 +26,15 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.springframework.boot:spring-boot-starter-data-jpa")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+	// Spring Security
+    implementation("org.springframework.boot:spring-boot-starter-security")
+
+    // JWT - JSON Web Token
+    implementation("io.jsonwebtoken:jjwt-api:0.12.6")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
+    implementation("com.fasterxml.jackson.core:jackson-databind")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 }
 
 tasks.withType<Test> {

@@ -4,10 +4,13 @@ import ec.edu.ups.icc.fundamentos01.categories.dtos.CategoryResponseDto;
 import ec.edu.ups.icc.fundamentos01.categories.dtos.CreateCategoryDto;
 import ec.edu.ups.icc.fundamentos01.categories.dtos.UpdateCategoryDto;
 import ec.edu.ups.icc.fundamentos01.categories.services.CategoryService;
+import ec.edu.ups.icc.fundamentos01.core.dtos.PaginationDto;
 import ec.edu.ups.icc.fundamentos01.products.dtos.ProductFilterByUserDto;
 import ec.edu.ups.icc.fundamentos01.products.dtos.ProductResponseDto;
 import ec.edu.ups.icc.fundamentos01.products.services.ProductService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -63,5 +66,36 @@ public class CategoriesController {
             @Valid @ModelAttribute ProductFilterByUserDto filters
     ) {
         return productService.findByCategoryIdWithFilters(id, filters);
+    }
+
+    /*
+     * Endpoint paginado con Page para productos de una categoría.
+     *
+     * GET /api/categories/{id}/products/page
+     * GET /api/categories/{id}/products/page?page=0&size=5
+     * GET /api/categories/{id}/products/page?name=laptop&minPrice=500&page=0&size=5
+     */
+    @GetMapping("/{id}/products/page")
+    public Page<ProductResponseDto> findProductsByCategoryPage(
+            @PathVariable Long id,
+            @Valid @ModelAttribute ProductFilterByUserDto filters,
+            @Valid @ModelAttribute PaginationDto pagination
+    ) {
+        return productService.findByCategoryIdWithFiltersPage(id, filters, pagination);
+    }
+
+    /*
+     * Endpoint paginado con Slice para productos de una categoría.
+     *
+     * GET /api/categories/{id}/products/slice
+     * GET /api/categories/{id}/products/slice?page=0&size=5
+     */
+    @GetMapping("/{id}/products/slice")
+    public Slice<ProductResponseDto> findProductsByCategorySlice(
+            @PathVariable Long id,
+            @Valid @ModelAttribute ProductFilterByUserDto filters,
+            @Valid @ModelAttribute PaginationDto pagination
+    ) {
+        return productService.findByCategoryIdWithFiltersSlice(id, filters, pagination);
     }
 }
