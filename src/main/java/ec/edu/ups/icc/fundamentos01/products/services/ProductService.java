@@ -51,13 +51,11 @@ public interface ProductService {
      */
     Page<ProductResponseDto> findAllPage(PaginationDto pagination);
 
+    
     /*
-        * Retorna productos activos usando Slice.
-        *
-        * Solo devuelve los productos del usuario autenticado (sin excepción
-        * de rol): a diferencia de findAll(), aquí ADMIN no ve productos ajenos.
-    */
-    Slice<ProductResponseDto> findAllSlice(PaginationDto pagination, UserDetailsImpl currentUser);
+     * Retorna productos activos usando Slice.
+     */
+    Slice<ProductResponseDto> findAllSlice(PaginationDto pagination);
 
     /*
      * Retorna productos de una categoría con filtros y Page.

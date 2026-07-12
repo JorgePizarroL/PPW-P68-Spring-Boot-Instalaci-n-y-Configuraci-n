@@ -292,8 +292,47 @@ Al crear un producto enviando `userId` y `categoryId`, la respuesta devuelve los
 
 ## Explicación: ¿Cómo se relaciona ProductEntity con UserEntity y CategoryEntity?
 
-Usé `@ManyToOne` porque la relación es "muchos productos pertenecen a un mismo usuario/categoría" — es la entidad "muchos" (`Product`) la que apunta hacia la entidad "uno" (`User` o `Category`). `@JoinColumn` define el nombre exacto de la columna de clave foránea que Hibernate crea en la tabla `products` (`user_id` y `category_id`), apuntando al `id` de la tabla relacionada.
+Se uso `@ManyToOne` porque la relación es "muchos productos pertenecen a un mismo usuario/categoría" — es la entidad "muchos" (`Product`) la que apunta hacia la entidad "uno" (`User` o `Category`). `@JoinColumn` define el nombre exacto de la columna de clave foránea que Hibernate crea en la tabla `products` (`user_id` y `category_id`), apuntando al `id` de la tabla relacionada.
 
-Usé `fetch = FetchType.LAZY` en vez de `EAGER` porque así el usuario y la categoría solo se cargan de la base de datos cuando realmente se accede a ellos (`entity.getOwner()`), en vez de traerlos siempre aunque no se necesiten. Esto es importante en listados grandes, donde cargar todas las relaciones de golpe sería un desperdicio de consultas.
+Se uso `fetch = FetchType.LAZY` en vez de `EAGER` porque así el usuario y la categoría solo se cargan de la base de datos cuando realmente se accede a ellos (`entity.getOwner()`), en vez de traerlos siempre aunque no se necesiten. Esto es importante en listados grandes, donde cargar todas las relaciones de golpe sería un desperdicio de consultas.
 
 Antes de guardar un producto, el servicio valida que tanto el usuario como la categoría existan y no estén eliminados lógicamente (`deleted = false`); si alguno no existe, se lanza `NotFoundException` y la API responde `404 Not Found`.
+
+---
+
+# Práctica 9 - Spring Boot: Request Parameters, Consultas Relacionadas y Filtrado con JPA
+
+## Cambios en esta práctica
+
+Se cambio las rutas técnicas (`/products/user/{userId}`, `/products/category/{categoryId}`) por rutas semánticas:
+
+GET /api/users/{id}/products
+GET /api/categories/{id}/products
+
+Ambas aceptan filtros opcionales por query params: `name`, `minPrice`, `maxPrice`, y según el contexto, `categoryId` o `userId`.
+
+También cambié la relación entre productos y categorías de `@ManyToOne` (una sola categoría por producto) a `@ManyToMany`, usando una tabla intermedia `product_categories`. Ahora los DTOs reciben `categoryIds` (un Set) en vez de `categoryId`.
+
+## Evidencias
+
+### 1. Producto creado con varias categorías
+![producto con varias categorías](assets/24_product_multiple_categories.png)
+
+### 2. Filtro de productos por usuario
+`GET /api/users/12/products?name=laptop&minPrice=500`
+
+![filtros por usuario](assets/25_products_user_filters.png)
+
+### 3. Filtro de productos por categoría
+`GET /api/categories/1/products?userId=12`
+
+![filtros por categoría](assets/26_products_category_filters.png)
+
+---
+
+## Explicación
+
+El endpoint está en `/users/{id}/products` pero uso `ProductService` y `ProductRepository`, no un servicio de usuarios, porque lo que realmente se consulta es el recurso `products`. La URL solo define el contexto (desde dónde se pide), pero la lógica de negocio de productos sigue viviendo en un solo lugar.
+
+Al pasar de una sola categoría a varias, la columna `category_id` en `products` desapareció y se creó la tabla intermedia `product_categories`. Las consultas del repositorio pasaron de comparar `p.category.id` a hacer un `JOIN p.categories c`, y tuve que usar `DISTINCT` porque un producto con varias categorías puede aparecer repetido en el resultado del JOIN.
+
