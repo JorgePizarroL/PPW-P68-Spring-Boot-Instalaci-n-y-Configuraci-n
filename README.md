@@ -241,3 +241,59 @@ Se intentó crear un producto con el nombre "Teclado" que ya existe en la base d
 Se enviaron datos inválidos. El handler devuelve el campo `details` con el error específico de cada campo.
 
 ![validacion details](assets/20_validacion_details.png)
+
+---
+
+# Práctica 8 - Spring Boot: Relaciones ManyToOne, Foreign Keys y Consultas Relacionales
+
+## Relaciones implementadas
+
+En esta práctica los productos dejaron de existir de forma aislada. Ahora cada producto se relaciona con:
+
+- Un **usuario** (`UserEntity`) que lo registra
+- Una **categoría** (`CategoryEntity`) a la que pertenece
+
+Ambas relaciones son `@ManyToOne` desde `ProductEntity`:
+
+```java
+@ManyToOne(optional = false, fetch = FetchType.LAZY)
+@JoinColumn(name = "user_id", nullable = false)
+private UserEntity owner;
+
+@ManyToOne(optional = false, fetch = FetchType.LAZY)
+@JoinColumn(name = "category_id", nullable = false)
+private CategoryEntity category;
+```
+
+Esto crea dos columnas de clave foránea en la tabla `products`: `user_id` y `category_id`, ambas `NOT NULL` porque un producto no puede existir sin usuario ni categoría (`optional = false`).
+
+## Nuevo módulo: categories
+
+Se agregó el módulo `categories/` completo (entidad, DTOs, repositorio, servicio y controlador), siguiendo el mismo patrón de capas que ya usaba `products/`.
+
+## Evidencias
+
+### 1. Estructura de la tabla `products` en PostgreSQL
+Se verificó con `\d products` que las columnas `user_id` y `category_id` se crearon como claves foráneas hacia `users` y `categories`.
+
+![estructura tabla products](assets/21_products_table_structure.png)
+
+### 2. Creación de producto con relaciones anidadas
+Al crear un producto enviando `userId` y `categoryId`, la respuesta devuelve los objetos `owner` y `category` completos, no solo sus IDs.
+
+![creación producto con relaciones](assets/22_create_product_relations.png)
+
+### 3. Consulta de productos por categoría
+`GET /api/products/category/{categoryId}` devuelve solo los productos activos de esa categoría.
+
+![productos por categoría](assets/23_products_by_category.png)
+
+---
+
+## Explicación: ¿Cómo se relaciona ProductEntity con UserEntity y CategoryEntity?
+
+Usé `@ManyToOne` porque la relación es "muchos productos pertenecen a un mismo usuario/categoría" — es la entidad "muchos" (`Product`) la que apunta hacia la entidad "uno" (`User` o `Category`). `@JoinColumn` define el nombre exacto de la columna de clave foránea que Hibernate crea en la tabla `products` (`user_id` y `category_id`), apuntando al `id` de la tabla relacionada.
+
+Usé `fetch = FetchType.LAZY` en vez de `EAGER` porque así el usuario y la categoría solo se cargan de la base de datos cuando realmente se accede a ellos (`entity.getOwner()`), en vez de traerlos siempre aunque no se necesiten. Esto es importante en listados grandes, donde cargar todas las relaciones de golpe sería un desperdicio de consultas.
+
+Antes de guardar un producto, el servicio valida que tanto el usuario como la categoría existan y no estén eliminados lógicamente (`deleted = false`); si alguno no existe, se lanza `NotFoundException` y la API responde `404 Not Found`.
