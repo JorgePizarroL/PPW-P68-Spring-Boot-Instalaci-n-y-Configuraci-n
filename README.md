@@ -377,3 +377,37 @@ Paginación a los endpoints de productos usando `Page` y `Slice` de Spring Data 
 `Page` trae los datos más el total de elementos y total de páginas, porque ejecuta una consulta extra de COUNT. `Slice` no hace ese COUNT, solo trae los datos y sabe si hay una página siguiente o no, por eso es más rápido pero no sirve si necesito mostrar "página 1 de 20" en el frontend.
 
 La paginación tiene que aplicarse en el repositorio (con `LIMIT`/`OFFSET` en el `Pageable`) y no traer todo a memoria y cortar ahí, porque si tengo 20,000 productos y solo pido 5, traer los 20,000 desde la base de datos para luego quedarme con 5 es un desperdicio enorme de memoria y tiempo. Con `Pageable` en la consulta, la base de datos solo devuelve los 5 registros que realmente necesito.
+
+---
+
+# Práctica 11 - Spring Boot: Autenticación JWT, Autorización por Roles y Protección de Endpoints
+
+## Cambios en esta práctica
+
+Hasta acá todos los endpoints estaban abiertos, cualquiera podía crear, editar o borrar lo que sea sin identificarse. Agregué autenticación con JWT (JSON Web Token): el usuario se registra o hace login en `/auth/register` y `/auth/login`, recibe un token, y lo manda en el header `Authorization: Bearer <token>` en cada petición a un endpoint protegido.
+
+Creé un paquete `security/` nuevo con toda la lógica: `RoleEntity`/`RoleName` (tabla separada de roles, relación ManyToMany con `UserEntity`), `JwtUtil` (genera y valida el token), `UserDetailsImpl`/`UserDetailsServiceImpl` (conectan mi `UserEntity` con Spring Security), los filtros `JwtAuthenticationFilter` (revisa el token en cada request) y `JwtAuthenticationEntryPoint` (responde 401 en formato JSON cuando falta o es inválido el token), y `SecurityConfig` (define qué rutas son públicas y cuáles no, y conecta todo).
+
+Las contraseñas se guardan con BCrypt, nunca en texto plano. Todo usuario nuevo se registra con `ROLE_USER` por defecto (esos roles base los crea `SecurityDataInitializer` al arrancar la app).
+
+## Evidencias
+
+### 1. Registro exitoso
+`POST /auth/register` → 201 Created, con token generado y `ROLE_USER` asignado.
+
+![registro](assets/33_auth_register.png)
+
+### 2. Login exitoso
+`POST /auth/login` → 200 OK, con token y roles del usuario.
+
+![login](assets/34_auth_login.png)
+
+### 3. Endpoint protegido sin token
+`GET /products/page` sin header Authorization → 401 Unauthorized.
+
+![sin token](assets/35_protected_no_token.png)
+
+### 4. Endpoint protegido con token
+El mismo endpoint, ahora con `Authorization: Bearer <token>` → 200 OK.
+
+![con token](assets/36_protected_with_token.png)
