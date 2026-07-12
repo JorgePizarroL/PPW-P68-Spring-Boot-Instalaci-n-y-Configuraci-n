@@ -429,3 +429,48 @@ Jorge (con `ROLE_ADMIN`) consulta `GET /products` y recibe la lista completa.
 Daniela (solo `ROLE_USER`) intenta lo mismo y recibe 403 Forbidden, no 500.
 
 ![user forbidden](assets/38_user_forbidden_findall.png)
+
+---
+
+# Práctica 13 - Spring Boot: Validación de Propiedad de Recursos (Ownership)
+
+Con roles ya funcionando, faltaba resolver algo: cualquier usuario autenticado podía editar o borrar productos de otros usuarios, no solo los suyos. Agregué validación de ownership en el servicio: `validateOwnership()` revisa si el usuario actual es el dueño del producto o tiene `ROLE_ADMIN`; si no es ninguna de las dos, lanza `AccessDeniedException` y responde 403.
+
+Se quito el campo `userId` de `CreateProductDto`. Antes cualquiera podía mandar el `userId` que quisiera en el body y crear productos a nombre de otro usuario. Ahora el owner sale directo del token (`@AuthenticationPrincipal UserDetailsImpl currentUser`), no del body.
+
+## Evidencias
+
+### 1. Creación de producto con owner desde el token
+Al crear un producto no se manda `userId`; el `owner` en la respuesta corresponde al usuario autenticado.
+
+![creación con owner](assets/39_create_product_owner.png)
+
+### 2. Usuario actualiza su propio producto
+Marcus edita su producto y recibe 200 OK.
+
+![update propio](assets/40_update_own_product.png)
+
+### 3. Usuario intenta modificar producto ajeno
+Daniela intenta editar el producto de Marcus → 403 Forbidden.
+
+![update ajeno bloqueado](assets/41_update_product_forbidden.png)
+
+### 4. Usuario intenta eliminar producto ajeno
+Daniela intenta eliminar el producto de Marcus → 403 Forbidden.
+
+![delete ajeno bloqueado](assets/42_delete_product_forbidden.png)
+
+### 5. ADMIN modifica producto ajeno
+Jorge (ROLE_ADMIN) edita el producto de Marcus sin ser el dueño → 200 OK. El `owner` no cambia, sigue siendo Marcus.
+
+![admin modifica ajeno](assets/43_admin_update_others_product.png)
+
+---
+
+## Explicación
+
+**¿Qué es ownership?** Que un recurso (en este caso, un producto) le pertenece a un usuario específico, y solo ese usuario (o alguien con permisos especiales, como ADMIN) puede modificarlo o eliminarlo.
+
+**¿Por qué no es seguro recibir `userId` en `CreateProductDto`?** Porque si el cliente puede mandar cualquier `userId` en el body, un usuario autenticado podría crear productos a nombre de otro usuario con solo cambiar ese número, sin que el sistema pueda verificar que realmente es quien dice ser. Por eso el owner tiene que salir del token, que ya fue validado por el filtro de JWT.
+
+**¿Diferencia entre autorización por rol y por ownership?** Por rol es una regla fija: "solo ADMIN puede entrar acá", sin importar de quién es el recurso. Por ownership depende del dato concreto: "puedes editar este producto si es tuyo", y se calcula comparando el `owner` del recurso con el usuario autenticado en cada petición, no de antemano.
