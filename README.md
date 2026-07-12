@@ -382,9 +382,7 @@ La paginación tiene que aplicarse en el repositorio (con `LIMIT`/`OFFSET` en el
 
 # Práctica 11 - Spring Boot: Autenticación JWT, Autorización por Roles y Protección de Endpoints
 
-## Cambios en esta práctica
-
-Hasta acá todos los endpoints estaban abiertos, cualquiera podía crear, editar o borrar lo que sea sin identificarse. Agregué autenticación con JWT (JSON Web Token): el usuario se registra o hace login en `/auth/register` y `/auth/login`, recibe un token, y lo manda en el header `Authorization: Bearer <token>` en cada petición a un endpoint protegido.
+Los endpoints estaban abiertos, cualquiera podía crear, editar o borrar lo que sea sin identificarse. Agregué autenticación con JWT (JSON Web Token): el usuario se registra o hace login en `/auth/register` y `/auth/login`, recibe un token, y lo manda en el header `Authorization: Bearer <token>` en cada petición a un endpoint protegido.
 
 Creé un paquete `security/` nuevo con toda la lógica: `RoleEntity`/`RoleName` (tabla separada de roles, relación ManyToMany con `UserEntity`), `JwtUtil` (genera y valida el token), `UserDetailsImpl`/`UserDetailsServiceImpl` (conectan mi `UserEntity` con Spring Security), los filtros `JwtAuthenticationFilter` (revisa el token en cada request) y `JwtAuthenticationEntryPoint` (responde 401 en formato JSON cuando falta o es inválido el token), y `SecurityConfig` (define qué rutas son públicas y cuáles no, y conecta todo).
 
@@ -411,3 +409,23 @@ Las contraseñas se guardan con BCrypt, nunca en texto plano. Todo usuario nuevo
 El mismo endpoint, ahora con `Authorization: Bearer <token>` → 200 OK.
 
 ![con token](assets/36_protected_with_token.png)
+
+---
+
+# Práctica 12 - Spring Boot: Protección de Endpoints con Roles
+
+Con JWT ya funcionando, cualquier usuario autenticado (con cualquier rol) podía acceder a todos los endpoints igual. Agregué `@PreAuthorize("hasRole('ADMIN')")` al endpoint `GET /products` (el que lista todo sin paginar), para que solo un usuario con `ROLE_ADMIN` pueda usarlo.
+
+También tuve que agregar manejadores nuevos en `GlobalExceptionHandler` para `AuthorizationDeniedException` y `AccessDeniedException`, porque sin ellos Spring Security devolvía 500 en vez de 403 cuando a alguien le faltaba el rol.
+
+## Evidencias
+
+### 1. ADMIN accede correctamente
+Jorge (con `ROLE_ADMIN`) consulta `GET /products` y recibe la lista completa.
+
+![admin ok](assets/37_admin_findall.png)
+
+### 2. Usuario sin ADMIN es bloqueado
+Daniela (solo `ROLE_USER`) intenta lo mismo y recibe 403 Forbidden, no 500.
+
+![user forbidden](assets/38_user_forbidden_findall.png)
