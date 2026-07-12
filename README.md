@@ -336,3 +336,44 @@ El endpoint está en `/users/{id}/products` pero uso `ProductService` y `Product
 
 Al pasar de una sola categoría a varias, la columna `category_id` en `products` desapareció y se creó la tabla intermedia `product_categories`. Las consultas del repositorio pasaron de comparar `p.category.id` a hacer un `JOIN p.categories c`, y tuve que usar `DISTINCT` porque un producto con varias categorías puede aparecer repetido en el resultado del JOIN.
 
+---
+
+# Práctica 10 - Spring Boot: Paginación de Productos con Page, Slice y Pageable
+
+Paginación a los endpoints de productos usando `Page` y `Slice` de Spring Data JPA, para no devolver todos los registros de una sola vez. Se mantiene `GET /products` sin paginar, y se agregaron `GET /products/page` y `GET /products/slice`. 
+
+## Evidencias
+
+### 1. Respuesta con Page
+`GET /products/page?page=0&size=5&sortBy=price&direction=desc` — incluye `totalElements`, `totalPages`, `number`, `size`, `first`, `last`.
+
+![page](assets/27_products_page.png)
+![page metadata](assets/28_products_page_metadata.png)
+
+### 2. Respuesta con Slice
+`GET /products/slice?page=0&size=5&sortBy=createdAt&direction=desc` — no incluye `totalElements` ni `totalPages`.
+
+![slice](assets/29_products_slice.png)
+
+### 3. Error por paginación inválida
+`GET /products/page?page=-1&size=0` → 400 Bad Request con el formato estándar de `ErrorResponse`.
+
+![error paginación](assets/30_pagination_bad_request.png)
+
+### 4. Endpoint de categoría paginado con Page
+`GET /categories/2/products/page?page=0&size=5` — productos filtrados por categoría con metadatos de Page.
+
+![category page](assets/31_category_page.png)
+
+### 5. Endpoint de categoría paginado con Slice
+`GET /categories/2/products/slice?page=0&size=5` — productos filtrados por categoría con metadatos de Slice.
+
+![category slice](assets/32_category_slice.png)
+
+---
+
+## Explicación
+
+`Page` trae los datos más el total de elementos y total de páginas, porque ejecuta una consulta extra de COUNT. `Slice` no hace ese COUNT, solo trae los datos y sabe si hay una página siguiente o no, por eso es más rápido pero no sirve si necesito mostrar "página 1 de 20" en el frontend.
+
+La paginación tiene que aplicarse en el repositorio (con `LIMIT`/`OFFSET` en el `Pageable`) y no traer todo a memoria y cortar ahí, porque si tengo 20,000 productos y solo pido 5, traer los 20,000 desde la base de datos para luego quedarme con 5 es un desperdicio enorme de memoria y tiempo. Con `Pageable` en la consulta, la base de datos solo devuelve los 5 registros que realmente necesito.
