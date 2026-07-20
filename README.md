@@ -475,6 +475,38 @@ Jorge (ROLE_ADMIN) edita el producto de Marcus sin ser el dueño → 200 OK. El 
 
 **¿Diferencia entre autorización por rol y por ownership?** Por rol es una regla fija: "solo ADMIN puede entrar acá", sin importar de quién es el recurso. Por ownership depende del dato concreto: "puedes editar este producto si es tuyo", y se calcula comparando el `owner` del recurso con el usuario autenticado en cada petición, no de antemano.
 
+# Práctica 14 - Renovación de Access Token con Refresh Token
+
+## Evidencias
+
+### 1. Login con refresh token
+`POST /api/auth/login` → `200 OK`, respuesta incluye `token`, `refreshToken` y `roles`.
+
+![login con refresh token](assets/50_login_refresh_token.png)
+
+### 2. Refresh exitoso
+`POST /api/auth/refresh` con el `refreshToken` del login → `200 OK`, nuevo `token` y nuevo `refreshToken`.
+
+![refresh exitoso](assets/51_refresh_exitoso.png)
+
+### 3. Logout
+`POST /api/auth/logout` con el `refreshToken` vigente → `204 No Content`.
+
+![logout](assets/52_logout.png)
+
+### 4. Refresh después de logout
+`POST /api/auth/refresh` con el mismo `refreshToken` ya revocado por el logout → `400 Bad Request`, `"Refresh token no encontrado o revocado"`.
+
+![refresh después de logout](assets/53_refresh_despues_logout.png)
+
+## Explicación
+
+**¿Cuál es la diferencia entre access token y refresh token?** El access token se usa en cada petición a un endpoint protegido (`Authorization: Bearer <token>`) y dura poco (30 minutos). El refresh token solo se usa para pedir un access token nuevo (`POST /auth/refresh`), dura mucho más (7 días), y no sirve para consumir endpoints protegidos.
+
+**¿Por qué el refresh token no debe usarse en `Authorization: Bearer`?** Porque cada token lleva un claim `type` (`access` o `refresh`), y `JwtAuthenticationFilter` valida específicamente con `validateAccessToken()`. Si se intenta usar un refresh token como access token, el filtro lo rechaza con `401`, aunque la firma del JWT sea válida — la validez criptográfica no es suficiente, también debe ser del tipo correcto.
+
+**¿Qué significa rotar un refresh token?** Que cada vez que se usa un refresh token para renovar la sesión, ese token se revoca de inmediato y se genera uno nuevo. Así ningún refresh token puede reutilizarse más de una vez — si alguien lo reutiliza (por ejemplo, un token robado), la API lo rechaza porque ya está marcado como `revoked = true` en base de datos.
+
 # Práctica 16 - Despliegue portable de Spring Boot con Docker y Nginx en Ubuntu Server
 
 ## Entregables Evidencias
