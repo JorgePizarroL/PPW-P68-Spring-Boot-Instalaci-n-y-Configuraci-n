@@ -504,7 +504,7 @@ PostgreSQL corre como contenedor Docker en la máquina host (Windows). El conten
 
 ![login bruno](assets/48_login_bruno.png)
 
-### Extra: Swagger UI accesible vía Nginx desde el navegador
+### 6. Swagger UI accesible vía Nginx desde el navegador
 `http://192.168.56.2/api/swagger-ui/index.html` cargando desde un navegador en Windows, confirmando que toda la documentación interactiva de la API también es accesible a través del reverse proxy.
 
 ![swagger ui vía nginx](assets/49_swagger_ui_via_nginx.png)
