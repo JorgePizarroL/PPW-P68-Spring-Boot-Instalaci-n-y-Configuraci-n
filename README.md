@@ -474,3 +474,37 @@ Jorge (ROLE_ADMIN) edita el producto de Marcus sin ser el dueño → 200 OK. El 
 **¿Por qué no es seguro recibir `userId` en `CreateProductDto`?** Porque si el cliente puede mandar cualquier `userId` en el body, un usuario autenticado podría crear productos a nombre de otro usuario con solo cambiar ese número, sin que el sistema pueda verificar que realmente es quien dice ser. Por eso el owner tiene que salir del token, que ya fue validado por el filtro de JWT.
 
 **¿Diferencia entre autorización por rol y por ownership?** Por rol es una regla fija: "solo ADMIN puede entrar acá", sin importar de quién es el recurso. Por ownership depende del dato concreto: "puedes editar este producto si es tuyo", y se calcula comparando el `owner` del recurso con el usuario autenticado en cada petición, no de antemano.
+
+# Práctica 16 - Despliegue portable de Spring Boot con Docker y Nginx en Ubuntu Server
+
+## Entregables Evidencias
+
+### 1. Ambos contenedores en ejecución
+`docker ps` en Ubuntu Server mostrando `fundamentos-api` (healthy) y `fundamentos-nginx` corriendo.
+
+![docker ps ambos contenedores](assets/44_docker_ps_containers.png)
+
+### 2. Health check desde Ubuntu Server
+`curl http://localhost/api/actuator/health` dentro de la VM, a través de Nginx.
+
+![health check ubuntu](assets/45_health_check_ubuntu.png)
+
+### 3. Health check desde la máquina anfitriona
+`Invoke-RestMethod http://192.168.56.2/api/actuator/health` desde Windows.
+
+![health check windows](assets/46_health_check_windows.png)
+
+### 4. Conexión a PostgreSQL externo
+PostgreSQL corre como contenedor Docker en la máquina host (Windows). El contenedor `fundamentos-api`, en la VM, se conecta a `192.168.56.1:5432` a través de la red Host-Only de VirtualBox. Evidencia: log del contenedor mostrando `Started Fundamentos01Application` tras conectar exitosamente.
+
+![conexión postgresql](assets/47_postgres_connection_log.png)
+
+### 5. Login desde la máquina anfitriona con Bruno
+`POST http://192.168.56.2/api/auth/login` desde Bruno (Windows) → `200 OK` con `token` y `refreshToken`.
+
+![login bruno](assets/48_login_bruno.png)
+
+### Extra: Swagger UI accesible vía Nginx desde el navegador
+`http://192.168.56.2/api/swagger-ui/index.html` cargando desde un navegador en Windows, confirmando que toda la documentación interactiva de la API también es accesible a través del reverse proxy.
+
+![swagger ui vía nginx](assets/49_swagger_ui_via_nginx.png)

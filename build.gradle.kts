@@ -29,14 +29,26 @@ dependencies {
 	// Spring Security
     implementation("org.springframework.boot:spring-boot-starter-security")
 
+    // Actuator - health check para Docker/despliegue
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+
     // JWT - JSON Web Token
     implementation("io.jsonwebtoken:jjwt-api:0.12.6")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
     implementation("com.fasterxml.jackson.core:jackson-databind")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3")
 }
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+}
+
+tasks.bootJar {
+	archiveFileName.set("app.jar")
+}
+
+tasks.jar {
+	enabled = false
 }

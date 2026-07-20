@@ -3,13 +3,19 @@ package ec.edu.ups.icc.fundamentos01.security.dtos;
 import java.util.Set;
 
 /*
- * DTO de respuesta para login y register.
+ * DTO de respuesta para login, register y refresh.
  *
- * Devuelve el token y datos básicos del usuario autenticado.
+ * token: representa el access token, se usa en
+ *        Authorization: Bearer <token>
+ *
+ * refreshToken: se usa solo en /auth/refresh y /auth/logout,
+ *               no debe usarse para consumir endpoints protegidos.
  */
 public class AuthResponseDto {
 
     private String token;
+
+    private String refreshToken;
 
     private String type = "Bearer";
 
@@ -25,12 +31,14 @@ public class AuthResponseDto {
 
     public AuthResponseDto(
             String token,
+            String refreshToken,
             Long userId,
             String name,
             String email,
             Set<String> roles
     ) {
         this.token = token;
+        this.refreshToken = refreshToken;
         this.userId = userId;
         this.name = name;
         this.email = email;
@@ -39,6 +47,9 @@ public class AuthResponseDto {
 
     public String getToken() { return token; }
     public void setToken(String token) { this.token = token; }
+
+    public String getRefreshToken() { return refreshToken; }
+    public void setRefreshToken(String refreshToken) { this.refreshToken = refreshToken; }
 
     public String getType() { return type; }
     public void setType(String type) { this.type = type; }
