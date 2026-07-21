@@ -507,6 +507,63 @@ Jorge (ROLE_ADMIN) edita el producto de Marcus sin ser el dueño → 200 OK. El 
 
 **¿Qué significa rotar un refresh token?** Que cada vez que se usa un refresh token para renovar la sesión, ese token se revoca de inmediato y se genera uno nuevo. Así ningún refresh token puede reutilizarse más de una vez — si alguien lo reutiliza (por ejemplo, un token robado), la API lo rechaza porque ya está marcado como `revoked = true` en base de datos.
 
+# Práctica 15 - Documentación de Endpoints con Swagger, OpenAPI y Seguridad JWT
+
+## Evidencias
+
+### 1. Swagger UI cargado
+`/api/swagger-ui/index.html` mostrando la lista de controladores agrupados por tags.
+
+![swagger ui cargado](assets/54_swagger_ui_cargado.png)
+
+### 2. JSON OpenAPI
+`/api/v3/api-docs` mostrando `openapi`, `paths` y `components`.
+
+![json openapi](assets/55_json_openapi.png)
+
+### 3. AuthController documentado
+`POST /api/auth/login` expandido en Swagger, mostrando el body de ejemplo y el schema de la respuesta.
+
+![authcontroller documentado](assets/56_authcontroller_documentado.png)
+
+### 4. Botón Authorize
+Modal de autorización mostrando el esquema `bearerAuth` (JWT).
+
+![boton authorize](assets/57_boton_authorize.png)
+
+### 5. Endpoint protegido sin token
+`GET /api/products/page?page=0&size=5` desde Swagger sin autorizar → `401 Unauthorized`.
+
+![endpoint sin token](assets/58_endpoint_sin_token.png)
+
+### 6. Endpoint protegido con token desde Swagger
+`GET /api/products/page?page=0&size=5` con el botón Authorize activado → `200 OK` con datos reales.
+
+![endpoint con token](assets/59_endpoint_con_token.png)
+
+### 7. Endpoint ADMIN con usuario normal
+`GET /api/products` usando un token con `ROLE_USER` → `403 Forbidden`.
+
+![endpoint admin usuario normal](assets/60_endpoint_admin_role_user.png)
+
+### 8. ProductsController documentado
+Lista completa de endpoints de `/products` en Swagger, cada uno con su descripción y candado indicando qué requiere autenticación.
+
+![products controller documentado](assets/62_products_controller_documentado.png)
+
+### 9. Schema de respuesta documentado
+Ejemplo de respuesta de `GET /products` mostrando la estructura completa del `ProductResponseDto` (id, name, price, stock, owner, categories, timestamps).
+
+![products schema response](assets/63_products_schema_response.png)
+
+## Explicación
+
+**¿Cuál es la diferencia entre Swagger UI y OpenAPI?** OpenAPI es la especificación — un documento (JSON o YAML) que describe formalmente la API: rutas, métodos, parámetros, request/response bodies, códigos de estado y seguridad. Swagger UI es solo la interfaz visual que lee ese documento OpenAPI y lo muestra como una página interactiva donde se puede leer la documentación y probar los endpoints directamente desde el navegador.
+
+**¿Por qué Swagger puede ser público pero los endpoints seguir protegidos?** Porque son dos capas independientes. `SecurityConfig` permite el acceso público únicamente a las rutas de Swagger (`/swagger-ui/**`, `/v3/api-docs/**`), no a los endpoints reales de la API (`/products`, `/users`, etc.). Que alguien pueda *ver* la documentación de un endpoint protegido no significa que pueda *consumirlo* sin token — Swagger solo construye y envía la petición HTTP, y esa petición sigue pasando por el mismo `JwtAuthenticationFilter` que cualquier otro cliente.
+
+**¿Cómo se configura Swagger para enviar un JWT en `Authorization: Bearer`?** Con dos piezas: `OpenApiConfig` define un `SecurityScheme` de tipo `http`/`bearer` llamado `bearerAuth`, lo que hace aparecer el botón **Authorize** en la interfaz. Al pegar un token ahí, Swagger lo guarda y lo agrega automáticamente como header `Authorization: Bearer <token>` en cada petición — pero solo a los endpoints que tengan `@SecurityRequirement(name = "bearerAuth")` (a nivel de clase o de método), que es la anotación que le dice a Swagger cuáles operaciones requieren ese esquema.
+
 # Práctica 16 - Despliegue portable de Spring Boot con Docker y Nginx en Ubuntu Server
 
 ## Entregables Evidencias
